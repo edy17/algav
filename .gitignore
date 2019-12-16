@@ -5,6 +5,7 @@ dependency-reduced-pom.xml
 log.txt
 target
 build
+out
 output-sam.yaml
 .classpath
 .project
