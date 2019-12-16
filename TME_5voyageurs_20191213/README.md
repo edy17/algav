@@ -1,9 +1,9 @@
 # TME: heuristiques pour le problème de voyageur de commerce multiple, avec budget.
 
 #score
-443 : 15/20
-428 : 10/20
-454 : 18/20
+- 428 : 10/20
+- 443 : 15/20
+- 454 : 18/20
 
 #Instruction
 - Cinq voyageurs de commerce alice, bob, cindy, david et eddy disposant chacun d'un budget de 1664 dollars; 

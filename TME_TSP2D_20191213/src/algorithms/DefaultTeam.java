@@ -5,7 +5,6 @@ import supportGUI.Line;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class DefaultTeam {
 
@@ -15,7 +14,6 @@ public class DefaultTeam {
         score += (points.get(0)).distance(points.get(points.size() - 1));
         return score;
     }
-
 
     public ArrayList<Point> improveSwap(ArrayList<Point> points) {
         ArrayList<Point> result = new ArrayList<>();
@@ -38,25 +36,6 @@ public class DefaultTeam {
         return null;
     }
 
-    public ArrayList<ArrayList<Point> > generatePerm(ArrayList<Point>  original) {
-        if (original.isEmpty()) {
-            ArrayList<ArrayList<Point> > result = new ArrayList<>();
-            result.add(new ArrayList<>());
-            return result;
-        }
-        Point firstElement = original.remove(0);
-        ArrayList<ArrayList<Point> >returnValue = new ArrayList<>();
-        ArrayList<ArrayList<Point> > permutations = generatePerm(original);
-        for (ArrayList<Point> smallerPermutated : permutations) {
-            for (int index=0; index <= smallerPermutated.size(); index++) {
-                ArrayList<Point> temp = new ArrayList<>(smallerPermutated);
-                temp.add(index, firstElement);
-                returnValue.add(temp);
-            }
-        }
-        return returnValue;
-    }
-
     // calculTSP: ArrayList<Point> --> ArrayList<Point>
     //   renvoie une permutation P de points telle que la visite
     //   de ces points selon l'ordre défini par P est de distance
@@ -76,14 +55,10 @@ public class DefaultTeam {
             rest.remove(p);
             dummy = p;
         }
-
-        final ArrayList<Point>[] clone = new ArrayList[]{(ArrayList<Point>) result.clone()};
-        generatePerm(points).forEach(permuts -> {
-            if (score(permuts) < score(clone[0])) {
-                clone[0] = permuts;
-            }
-        });
-        return clone[0];
+        while (score(improveSwap(result)) < score(result)) {
+            result = improveSwap(result);
+        }
+        return result;
     }
 
     private Point plusProche(Point dummy, ArrayList<Point> points) {
