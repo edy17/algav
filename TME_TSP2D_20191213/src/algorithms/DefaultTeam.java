@@ -135,7 +135,7 @@ public class DefaultTeam {
         ArrayList<Point> result = calculTSP(points);
         Collections.shuffle(points);
         ArrayList<Point> newResult = calculTSP(points);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 50; i++) {
             if (score(newResult) < score(result)) {
                 result = newResult;
             }
