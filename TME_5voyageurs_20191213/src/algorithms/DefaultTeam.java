@@ -109,39 +109,12 @@ public class DefaultTeam {
         return xDiff * xDiff + yDiff * yDiff;
     }
 
-    public double agl(Point center, Point start, Point end) {
-        int a2 = lengthSquare(end, center);
-        int b2 = lengthSquare(start, center);
-        int c2 = lengthSquare(start, end);
-        double a = Math.sqrt(a2);
-        double c = Math.sqrt(c2);
-        return Math.acos((a2 + c2 - b2) / (2 * a * c));
+
+    public double agl(Point center, Point current, Point previous) {
+        return Math.toDegrees(Math.atan2(current.x - center.x,current.y - center.y)-
+                Math.atan2(previous.x- center.x,previous.y- center.y));
     }
 
-    public String toFraction(double angle, int factor) {
-        double d = angle / Math.PI;
-        StringBuilder sb = new StringBuilder();
-        if (d < 0) {
-            sb.append('-');
-            d = -d;
-        }
-        long l = (long) d;
-        d -= l;
-        double error = Math.abs(d);
-        int bestDenominator = 1;
-        for (int i = 2; i <= factor; i++) {
-            double error2 = Math.abs(d - (double) Math.round(d * i) / i);
-            if (error2 < error) {
-                error = error2;
-                bestDenominator = i;
-            }
-        }
-        if (bestDenominator > 1) {
-            if (l != 0) sb.append(l * Math.round(d * bestDenominator)).append("PI/").append(bestDenominator);
-            else sb.append(Math.round(d * bestDenominator)).append("PI/").append(bestDenominator);
-        }
-        return sb.toString();
-    }
 
     public ArrayList<ArrayList<Point>> calculCinqVoyageursAvecBudget(Point maison, ArrayList<Point> points) {
         ArrayList<Point> alice = new ArrayList<Point>();
@@ -181,27 +154,23 @@ public class DefaultTeam {
         b.setLocation(o.x + Math.cos(2 * Math.PI / 5) * radius
                 , o.y + Math.sin(2 * Math.PI / 5) * radius);
         double regionAngle = agl(o, a, b);
-        System.out.println("0____"+agl(o,a,b));
-        if (regionAngle < 0) {
-            regionAngle += 2 * Math.PI;
-        }
+        System.out.println("Region____" + regionAngle);
         for (int i = 0; i < clone.size(); i++) {
             Point c = clone.get(i);
             double angle = agl(o, a, c);
-            if (angle < 0) {
-                angle += 2 * Math.PI;
+            if(angle < 0){
+                angle += 360;
             }
-
             if ((angle > 0) && (angle <= regionAngle)) {
-                aliceRegion.add(c);
+                aliceRegion.add(c); //Rouge
             } else if ((angle > regionAngle) && (angle <= 2 * regionAngle)) {
-                bobRegion.add(c);
+                bobRegion.add(c); //vert
             } else if ((angle > 2 * regionAngle) && (angle <= 3 * regionAngle)) {
-                cindyRegion.add(c);
+                cindyRegion.add(c); //violet
             } else if ((angle > 3 * regionAngle) && (angle <= 4 * regionAngle)) {
-                daveRegion.add(c);
-            } else if ((angle > 4 * regionAngle) && (angle <= 2 * Math.PI)) {
-                eddyRegion.add(c);
+                daveRegion.add(c); //Jaune
+            } else if ((angle > 4 * regionAngle) && (angle <= 360)) {
+                eddyRegion.add(c); //Noir
             }
         }
         alice.addAll(calculTSP(aliceRegion, maison));
@@ -209,6 +178,13 @@ public class DefaultTeam {
         cindy.addAll(calculTSP(cindyRegion, maison));
         dave.addAll(calculTSP(daveRegion, maison));
         eddy.addAll(calculTSP(eddyRegion, maison));
+
+        System.out.println("alice____" + alice.size());
+        System.out.println("bob____" + bob.size());
+        System.out.println("cindy____" + cindy.size());
+        System.out.println("dave____" + dave.size());
+        System.out.println("eddy____" + eddy.size());
+
 
         ArrayList<ArrayList<Point>> result = new ArrayList<ArrayList<Point>>();
         result.add(alice);
