@@ -2,6 +2,7 @@ package algorithms;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Random;
 
 import supportGUI.Circle;
 import supportGUI.Line;
@@ -34,15 +35,15 @@ public class DefaultTeam {
     //    renvoie une paire de points de la liste, de distance maximum.
     public Line calculDiametre(ArrayList<Point> points) {
         if (points.size() < 2) return null;
-        Point p = points.get(0);
-        Point q = points.get(1);
-        for (Point s : points)
-            for (Point t : points)
-                if (s.distance(t) > p.distance(q)) {
-                    p = s;
-                    q = t;
-                }
-        return new Line(p, q);
+//        Point p = points.get(0);
+//        Point q = points.get(1);
+//        for (Point s : points)
+//            for (Point t : points)
+//                if (s.distance(t) > p.distance(q)) {
+//                    p = s;
+//                    q = t;
+//                }
+        return calculCercleDiametre(points);
     }
 
 
@@ -73,10 +74,8 @@ public class DefaultTeam {
         // cercle de centre p+q/2 (CToS) et de diamètre |pq|
         rest.remove(p);
         rest.remove(q);
-
 //        si notre cercle ne couvre pas tous les points, on l’agrandit pour
 //        couvrir l’ancien cercle, plus au moins un nouveau point
-
         //Pour chaque point
         while (!rest.isEmpty()) {
             Point s = rest.remove(0);
@@ -97,6 +96,51 @@ public class DefaultTeam {
         return new Circle(new Point((int) cX, (int) cY), (int) cRadius);
     }
     //return tme5exercice4(points);
+
+    public Line calculCercleDiametre(ArrayList<Point> points) {
+//        Algorithme Ritter
+        if (points.size() < 1) return null;
+        ArrayList<Point> rest = (ArrayList<Point>) points.clone();
+        Point dummy = rest.get(0);
+        Point p = dummy;
+        for (Point s : rest) if (dummy.distance(s) > dummy.distance(p)) p = s;
+        // p = point le plus éloigné de dummy
+        Point q = p;
+        for (Point s : rest) if (p.distance(s) > p.distance(q)) q = s;
+        // q = point le plus éloigné de p
+        double cX = .5 * (p.x + q.x);
+        double cY = .5 * (p.y + q.y);
+        double cRadius = .5 * p.distance(q);
+        // cercle de centre p+q/2 (CToS) et de diamètre |pq|
+        rest.remove(p);
+        rest.remove(q);
+//        si notre cercle ne couvre pas tous les points, on l’agrandit pour
+//        couvrir l’ancien cercle, plus au moins un nouveau point
+        //Pour chaque point
+        while (!rest.isEmpty()) {
+            Point s = rest.remove(0);
+            //Si le cercle de centre CTOS couvre notre point
+            //On passe au prochain point
+            double distanceFromCToS = Math.sqrt((s.x - cX) * (s.x - cX) + (s.y - cY) * (s.y - cY));
+            if (distanceFromCToS <= cRadius) continue;
+            //Si non on agrandit le cercle
+            double cPrimeRadius = .5 * (cRadius + distanceFromCToS);
+            double alpha = cPrimeRadius / (double) (distanceFromCToS);
+            double beta = (distanceFromCToS - cPrimeRadius) / (double) (distanceFromCToS);
+            double cPrimeX = alpha * cX + beta * s.x;
+            double cPrimeY = alpha * cY + beta * s.y;
+            cRadius = cPrimeRadius;
+            cX = cPrimeX;
+            cY = cPrimeY;
+        }
+        Random generator = new Random();
+        float i = 2*generator.nextFloat();
+        Point a = new Point();
+        Point b = new Point();
+        a.setLocation(cX +  Math.cos(i*Math.PI)*cRadius, cY + Math.sin(i*Math.PI)*cRadius);
+        b.setLocation(cX+  Math.cos(i*Math.PI-Math.PI)*cRadius, cY + Math.sin(i*Math.PI-Math.PI)*cRadius);
+        return new Line(a, b);
+    }
 
 
     private Circle tme5exercice4(ArrayList<Point> inputPoints) {

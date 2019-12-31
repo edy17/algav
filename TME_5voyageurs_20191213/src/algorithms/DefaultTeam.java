@@ -1,9 +1,8 @@
 package algorithms;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 public class DefaultTeam {
@@ -76,31 +75,6 @@ public class DefaultTeam {
         return p;
     }
 
-    public ArrayList<Point> improveSwap(ArrayList<Point> points) {
-        ArrayList<Point> result = new ArrayList<>();
-        for (int i = 0; i < points.size(); i++) {
-            for (int j = i + 2; j < points.size(); j++) {
-                int n = points.size();
-                double a = points.get(i % n).distance(points.get((i + 1) % n));
-                double b = points.get(j % n).distance(points.get((j + 1) % n));
-                double c = points.get(i % n).distance(points.get((j) % n));
-                double d = points.get((i + 1) % n).distance(points.get((j + 1) % n));
-                if ((a + b) > (c + d)) {
-                    for (int k = 0; k <= i; k++) result.add(points.get(k));
-                    for (int k = j; k > i; k--) result.add(points.get(k));
-                    for (int k = j + 1; k < n; k++) result.add(points.get(k));
-                    return result;
-                }
-            }
-            return points;
-        }
-        return null;
-    }
-
-    // calculTSP: ArrayList<Point> --> ArrayList<Point>
-    //   renvoie une permutation P de points telle que la visite
-    //   de ces points selon l'ordre défini par P est de distance
-    //   totale minimum.
     public ArrayList<Point> calculTSP(ArrayList<Point> points, Point maison) {
         if (points.size() < 4) {
             return points;
@@ -117,26 +91,56 @@ public class DefaultTeam {
         return alternate(result);
     }
 
-    public ArrayList<Point> extractTour(ArrayList<Point> rest) {
-        ArrayList<Point> part = new ArrayList<>();
-        int i = 0;
-        while ((i < 100)) {
-            part.add(rest.get(i));
-            i++;
-        }
-        return part;
+    public Circle calculCercleMin(ArrayList<Point> points, Point maison) {
+        if (points.size() < 1) return null;
+        Point p = maison;
+        for (Point s : points) if (maison.distance(s) > maison.distance(p)) p = s;
+        // p = point le plus éloigné de maison
+        double cX = maison.x;
+        double cY = maison.y;
+        double cRadius = maison.distance(p);
+        // cercle de centre m=maison (CToS) et de rayon |mp|
+        return new Circle(new Point((int) cX, (int) cY), (int) cRadius);
     }
 
-    private static <E> ArrayList<E> pickNRandomElements(ArrayList<E> list, int tournament) {
-        Random r = new Random();
-        int length = list.size();
+    int lengthSquare(Point a, Point b) {
+        int xDiff = a.x - b.x;
+        int yDiff = a.y - b.y;
+        return xDiff * xDiff + yDiff * yDiff;
+    }
 
-        if (length < tournament) return null;
+    public double agl(Point center, Point start, Point end) {
+        int a2 = lengthSquare(end, center);
+        int b2 = lengthSquare(start, center);
+        int c2 = lengthSquare(start, end);
+        double a = Math.sqrt(a2);
+        double c = Math.sqrt(c2);
+        return Math.acos((a2 + c2 - b2) / (2 * a * c));
+    }
 
-        for (int i = length - 1; i >= length - tournament; --i) {
-            Collections.swap(list, i, r.nextInt(i + 1));
+    public String toFraction(double angle, int factor) {
+        double d = angle / Math.PI;
+        StringBuilder sb = new StringBuilder();
+        if (d < 0) {
+            sb.append('-');
+            d = -d;
         }
-        return new ArrayList<>(list.subList(length - tournament, length));
+        long l = (long) d;
+        d -= l;
+        double error = Math.abs(d);
+        int bestDenominator = 1;
+        for (int i = 2; i <= factor; i++) {
+            double error2 = Math.abs(d - (double) Math.round(d * i) / i);
+            if (error2 < error) {
+                error = error2;
+                bestDenominator = i;
+            }
+        }
+        if (bestDenominator > 1) {
+            if (l != 0) sb.append(l * Math.round(d * bestDenominator)).append("PI/").append(bestDenominator);
+            else sb.append(Math.round(d * bestDenominator)).append("PI/").append(bestDenominator);
+        }
+        return sb.toString();
     }
 
     public ArrayList<ArrayList<Point>> calculCinqVoyageursAvecBudget(Point maison, ArrayList<Point> points) {
@@ -158,9 +162,53 @@ public class DefaultTeam {
          * PARTIE A ECRIRE *
          *******************/
 
+
         if (points.size() < 101) {
             alice.addAll(clone);
         }
+
+        ArrayList<Point> aliceRegion = new ArrayList<Point>();
+        ArrayList<Point> bobRegion = new ArrayList<Point>();
+        ArrayList<Point> cindyRegion = new ArrayList<Point>();
+        ArrayList<Point> daveRegion = new ArrayList<Point>();
+        ArrayList<Point> eddyRegion = new ArrayList<Point>();
+        int radius = calculCercleMin(clone, maison).getRadius();
+        Point o = maison;
+        Point a = new Point();
+        a.setLocation(o.x + radius,
+                o.y);
+        Point b = new Point();
+        b.setLocation(o.x + Math.cos(2 * Math.PI / 5) * radius
+                , o.y + Math.sin(2 * Math.PI / 5) * radius);
+        double regionAngle = agl(o, a, b);
+        System.out.println("0____"+agl(o,a,b));
+        if (regionAngle < 0) {
+            regionAngle += 2 * Math.PI;
+        }
+        for (int i = 0; i < clone.size(); i++) {
+            Point c = clone.get(i);
+            double angle = agl(o, a, c);
+            if (angle < 0) {
+                angle += 2 * Math.PI;
+            }
+
+            if ((angle > 0) && (angle <= regionAngle)) {
+                aliceRegion.add(c);
+            } else if ((angle > regionAngle) && (angle <= 2 * regionAngle)) {
+                bobRegion.add(c);
+            } else if ((angle > 2 * regionAngle) && (angle <= 3 * regionAngle)) {
+                cindyRegion.add(c);
+            } else if ((angle > 3 * regionAngle) && (angle <= 4 * regionAngle)) {
+                daveRegion.add(c);
+            } else if ((angle > 4 * regionAngle) && (angle <= 2 * Math.PI)) {
+                eddyRegion.add(c);
+            }
+        }
+        alice.addAll(calculTSP(aliceRegion, maison));
+        bob.addAll(calculTSP(bobRegion, maison));
+        cindy.addAll(calculTSP(cindyRegion, maison));
+        dave.addAll(calculTSP(daveRegion, maison));
+        eddy.addAll(calculTSP(eddyRegion, maison));
 
         ArrayList<ArrayList<Point>> result = new ArrayList<ArrayList<Point>>();
         result.add(alice);
@@ -168,22 +216,12 @@ public class DefaultTeam {
         result.add(cindy);
         result.add(dave);
         result.add(eddy);
-        for (ArrayList<Point> salesman : result) {
-            ArrayList<Point> opt = calculTSP(clone, maison);
-            ArrayList<Point> tmp = new ArrayList<>(opt.subList(0, 199));
-            salesman.addAll(tmp);
 
-          ArrayList<Point> rest = new ArrayList<>();
-            while ((score(salesman) > 1664)) {
-                salesman.remove(salesman.size() - 1);
-                rest.add(salesman.get(salesman.size() - 1));
-            }
-            clone.removeAll(tmp);
-            clone.addAll(rest);
-            System.out.println(score(salesman));
-        }
+//        for (ArrayList<Point> salesman : result) {
+//            while ((score(salesman) > 1664)) {
+//                salesman.remove(salesman.size() - 1);
+//            }
+//        }
         return result;
     }
-
-
 }
