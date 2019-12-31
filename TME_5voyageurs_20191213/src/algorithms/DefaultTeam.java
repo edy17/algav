@@ -2,8 +2,6 @@ package algorithms;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
 
 public class DefaultTeam {
 
@@ -91,7 +89,7 @@ public class DefaultTeam {
         return alternate(result);
     }
 
-    public Circle calculCercleMin(ArrayList<Point> points, Point maison) {
+    public Circle calculCercleCouvrant(ArrayList<Point> points, Point maison) {
         if (points.size() < 1) return null;
         Point p = maison;
         for (Point s : points) if (maison.distance(s) > maison.distance(p)) p = s;
@@ -103,16 +101,9 @@ public class DefaultTeam {
         return new Circle(new Point((int) cX, (int) cY), (int) cRadius);
     }
 
-    int lengthSquare(Point a, Point b) {
-        int xDiff = a.x - b.x;
-        int yDiff = a.y - b.y;
-        return xDiff * xDiff + yDiff * yDiff;
-    }
-
-
     public double agl(Point center, Point current, Point previous) {
-        return Math.toDegrees(Math.atan2(current.x - center.x,current.y - center.y)-
-                Math.atan2(previous.x- center.x,previous.y- center.y));
+        return Math.toDegrees(Math.atan2(current.x - center.x, current.y - center.y) -
+                Math.atan2(previous.x - center.x, previous.y - center.y));
     }
 
 
@@ -145,31 +136,43 @@ public class DefaultTeam {
         ArrayList<Point> cindyRegion = new ArrayList<Point>();
         ArrayList<Point> daveRegion = new ArrayList<Point>();
         ArrayList<Point> eddyRegion = new ArrayList<Point>();
-        int radius = calculCercleMin(clone, maison).getRadius();
+        int radius = calculCercleCouvrant(clone, maison).getRadius();
         Point o = maison;
         Point a = new Point();
         a.setLocation(o.x + radius,
                 o.y);
-        Point b = new Point();
-        b.setLocation(o.x + Math.cos(2 * Math.PI / 5) * radius
-                , o.y + Math.sin(2 * Math.PI / 5) * radius);
-        double regionAngle = agl(o, a, b);
-        System.out.println("Region____" + regionAngle);
+        double regionAngle = 72;
         for (int i = 0; i < clone.size(); i++) {
             Point c = clone.get(i);
             double angle = agl(o, a, c);
-            if(angle < 0){
+            if (angle < 0) {
                 angle += 360;
             }
+            // Decoupage trigonometrique en 5 regions
+//            if ((angle > 0) && (angle <= regionAngle)) {
+//                aliceRegion.add(c); //Rouge
+//            } else if ((angle > regionAngle) && (angle <= 2 * regionAngle)) {
+//                bobRegion.add(c); //vert
+//            } else if ((angle > 2 * regionAngle) && (angle <= 3 * regionAngle)) {
+//                cindyRegion.add(c); //violet
+//            } else if ((angle > 3 * regionAngle) && (angle <= 4 * regionAngle)) {
+//                daveRegion.add(c); //Jaune
+//            } else if ((angle > 4 * regionAngle) && (angle <= 360)) {
+//                eddyRegion.add(c); //Noir
+//            }
+
+            // Ajustement des 5 regions
+            double tmp = (360 + (4 * regionAngle - 7)) / 2;
             if ((angle > 0) && (angle <= regionAngle)) {
                 aliceRegion.add(c); //Rouge
-            } else if ((angle > regionAngle) && (angle <= 2 * regionAngle)) {
+            } else if (((angle > regionAngle) && (angle <= 2 * regionAngle)) ||
+                    ((angle > 2 * regionAngle) && (angle <= 3 * regionAngle))) {
                 bobRegion.add(c); //vert
-            } else if ((angle > 2 * regionAngle) && (angle <= 3 * regionAngle)) {
+            } else if ((angle > 3 * regionAngle) && (angle <= (4 * regionAngle - 7))) {
                 cindyRegion.add(c); //violet
-            } else if ((angle > 3 * regionAngle) && (angle <= 4 * regionAngle)) {
+            } else if ((angle > (4 * regionAngle - 7)) && (angle <= tmp)) {
                 daveRegion.add(c); //Jaune
-            } else if ((angle > 4 * regionAngle) && (angle <= 360)) {
+            } else if ((angle > tmp) && (angle <= 360)) {
                 eddyRegion.add(c); //Noir
             }
         }
